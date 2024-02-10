@@ -60,16 +60,6 @@ class Plansza:
 
         self.lista_figur = lista_figur
     
-def konwersja_komend_do(komenda_do):
-        x = slownik_ruchy[komenda_do[0]]
-        y = komenda_do[1]
-        return (x,y)
-
-
-def is_legal(komenda):
-    x1,y1 = komenda
-    return x1>=0 and x1<8 and y1>=0 and y1<8  
-
 
 class Kolor(Enum):
     BIALY = 1
@@ -83,19 +73,19 @@ class Figura:
         self.polozenie = polozenie
         self.captured = False
 
-    def wykonaj_ruch(self, plansza : Plansza, loc_end):
+    def wykonaj_ruch(self, plansza : Plansza, loc_end) -> bool:
         
-        
-
         if self.sprawdz_legalnosc_ruchu(plansza, loc_end) and plansza.tura.value*plansza.plansza[self.polozenie[0], self.polozenie[1]] > 0:
 
             x, y = loc_end
             plansza.plansza[self.polozenie[0], self.polozenie[1]] = 0
             plansza.plansza[x, y] = self.wartosc
             self.polozenie = (x, y)
+            return True
 
         else: 
             print("Ruch nielegalny!")
+            return False
     
     def sprawdz_legalnosc_ruchu(self, plansza: Plansza, loc_end) -> bool:
         pass
@@ -146,52 +136,63 @@ class Wieza(Figura):
         x2,y2 = self.polozenie
         if x1 == x2:
             bool_1 = plansza.plansza[x1,y1]*plansza.plansza[x2,y2]<=0  #czy figury sa przyciwnych kolorow
-            bool_2  = np.all(plansza[x1, min(y1,y2)+1:max(y1,y2)] == 0)
+            bool_2  = np.all(plansza.plansza[x1, min(y1,y2)+1:max(y1,y2)] == 0)
             return np.logical_and(bool_1,bool_2)
         elif y1 == y2:
             
             bool_1 = plansza.plansza[x1,y1]*plansza.plansza[x2,y2]<=0  #czy figury sa przyciwnych kolorow
-            bool_2  = np.all(plansza[min(x1,x2)+1:max(x1,x2), y1] == 0)
+            bool_2  = np.all(plansza.plansza[min(x1,x2)+1:max(x1,x2), y1] == 0)
             return np.logical_and(bool_1,bool_2)
         else:
             return False
 
 class Kon(Figura):
-    def __init__(self, polozenie, kolor):
-        self.wartosc = 1
-        self.kolor = Kolor.BIALY
+    def __init__(self, polozenie, kolor: Kolor):
+        self.kolor = kolor
+        self.wartosc = 2*self.kolor.value
         self.zakres_ruchu = 1
         self.polozenie = np.array(polozenie)
         self.captured = False
 
-    def wykonaj_ruch(komenda):
-        pass
-    def set_polozenie(self,x,y):
-        self.polozenie[0] = x
-        self.polozenie[1] = y
+    def wykonaj_ruch(self, plansza: Plansza, loc_end):
+        return super().wykonaj_ruch(plansza, loc_end)
+    
+    def sprawdz_legalnosc_ruchu(self,plansza: Plansza, komenda_do):
 
-    def sprawdz_mozliwosc_ruchu(plansza):
-        pass
+        x1,y1 = self.polozenie
+        x2,y2 = komenda_do
 
-class Goniec(Figura):
-    def __init__(self, polozenie, kolor):
-        self.wartosc = 1
-        self.kolor = Kolor.BIALY
-        self.zakres_ruchu = 1
-        self.polozenie = np.array(polozenie)
-        self.captured = False
-
-    def wykonaj_ruch(komenda):
-        pass
-    def set_polozenie(self,x,y):
-        self.polozenie[0] = x
-        self.polozenie[1] = y
-
-    def sprawdz_mozliwosc_ruchu(self,plansza,komenda_do):
-        if abs(komenda_do[0]-self.polozenie[0]).equals(komenda_do[1]-self.polozenie[1]): 
+        if (abs(x2-x1) == 1 and abs(y2-y1) == 2):
+            return True
+        elif (abs(x2-x1) == 2 and abs(y2-y1) == 1):
             return True
         else:
             return False
+        
+
+class Goniec(Figura):
+    def __init__(self, polozenie, kolor: Kolor):
+        self.wartosc = 3*kolor.value
+        self.kolor = kolor
+        self.zakres_ruchu = 1
+        self.polozenie = np.array(polozenie)
+        self.captured = False
+
+    def wykonaj_ruch(self, plansza: Plansza, loc_end):
+        return super().wykonaj_ruch(plansza, loc_end)
+    
+    def sprawdz_legalnosc_ruchu(self,plansza: Plansza, komenda_do):
+
+        x1,y1 = self.polozenie
+        x2,y2 = komenda_do
+
+        if (abs(x2-x1) == 1 and abs(y2-y1) == 2):
+            return True
+        elif (abs(x2-x1) == 2 and abs(y2-y1) == 1):
+            return True
+        else:
+            return False
+        
 
 class Krolowa(Figura):
     def __init__(self, polozenie, kolor):

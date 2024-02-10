@@ -27,9 +27,11 @@ def play():
             if all(fig.polozenie == wybor_figury):
                 figura = fig
                 break
-        
-        print(ruch)
-        figura.wykonaj_ruch(plansza, ruch)
+
+        b = figura.wykonaj_ruch(plansza, ruch)
+
+        while(not b):
+            b = figura.wykonaj_ruch(plansza, ruch)
 
         plansza.zmien_ture()
 
