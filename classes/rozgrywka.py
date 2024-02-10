@@ -23,14 +23,12 @@ def play():
         figura = Figura()
 
         for fig in plansza.lista_figur:
-            print(fig.polozenie)
-            print(wybor_figury)
+            
             if all(fig.polozenie == wybor_figury):
                 figura = fig
                 break
-
-    
-    
+        
+        print(ruch)
         figura.wykonaj_ruch(plansza, ruch)
 
         plansza.zmien_ture()

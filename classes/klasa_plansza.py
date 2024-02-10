@@ -84,39 +84,30 @@ class Figura:
         self.captured = False
 
     def wykonaj_ruch(self, plansza : Plansza, loc_end):
+        
+        
 
-        if self.sprawdz_legalnosc_ruchu(plansza, loc_end):
+        if self.sprawdz_legalnosc_ruchu(plansza, loc_end) and plansza.tura.value*plansza.plansza[self.polozenie[0], self.polozenie[1]] > 0:
 
-            plansza.plansza[self.polozenie] = 0
-            plansza.plansza[loc_end] = self.wartosc
-
-            self.polozenie = loc_end
+            x, y = loc_end
+            plansza.plansza[self.polozenie[0], self.polozenie[1]] = 0
+            plansza.plansza[x, y] = self.wartosc
+            self.polozenie = (x, y)
 
         else: 
             print("Ruch nielegalny!")
-
-    # def sprawdz_mozliwosc_ruchu(self, plansza : Plansza, loc_end) -> bool:
-        
-    #     if plansza.plansza[self.polozenie] * self.kolor > 0 and plansza.plansza[loc_end]:
-    #         return True
-        
-    #     return False
     
     def sprawdz_legalnosc_ruchu(self, plansza: Plansza, loc_end) -> bool:
         pass
 
 class Pion(Figura):
     def __init__(self, polozenie, kolor: Kolor):
-        self.wartosc = 1
         self.kolor = kolor
+        self.wartosc = 1*self.kolor.value
         self.zakres_ruchu = 1
         self.polozenie = np.array(polozenie)
         self.captured = False
         self.first_move = True
-
-    def set_polozenie(self,x,y):
-
-        self.polozenie = (x, y)
     
     def wykonaj_ruch(self, plansza: Plansza, loc_end):
         self.first_move = False
@@ -127,42 +118,39 @@ class Pion(Figura):
         x, y = self.polozenie
         x1, y1 = loc_end
 
-        if (x == x1 and y + self.kolor.value == y1) and (plansza.plansza[loc_end] != 0):
+        #print((plansza.plansza[x1, y1] + plansza.plansza[x - self.kolor.value , y] == 0))
+
+        if (y == y1 and x - self.kolor.value == x1) and (plansza.plansza[x1, y1] == 0):
             return True
-        elif ((x == x1 and y + 2*self.kolor.value == y1 and self.first_move) and (plansza.plansza[loc_end] + plansza.plansza[(x, y + self.kolor.value)] == 0)):
+        elif ((y == y1 and x - 2*self.kolor.value == x1 and self.first_move==0) and (plansza.plansza[x1, y1] + plansza.plansza[x - self.kolor.value , y] == 0)):
             return True
-        elif ((x+1 == x1 or x-1 ==x1) and y + self.kolor == y1) and plansza.plansza[loc_end] * self.kolor < 0:
+        elif ((y+1 == y1 or y-1 ==y1) and x - self.kolor.value == x1) and plansza.plansza[x1, y1] * self.kolor.value < 0:
             return True
         else:
             return False
         
-        
-        
-
 class Wieza(Figura):
-    def __init__(self, polozenie, kolor):
-        self.wartosc = 1
-        self.kolor = Kolor.BIALY
-        self.zakres_ruchu = 1
+    def __init__(self, polozenie, kolor: Kolor):
+        
+        self.kolor = kolor
+        self.wartosc = 5*self.kolor.value
         self.polozenie = np.array(polozenie)
         self.captured = False
 
-    def wykonaj_ruch(komenda):
-        pass
-    def set_polozenie(self,x,y):
-        self.polozenie[0] = x
-        self.polozenie[1] = y
+    def wykonaj_ruch(self, plansza: Plansza, loc_end):
+        return super().wykonaj_ruch(plansza, loc_end)
+    
 
-    def sprawdz_mozliwosc_ruchu(self,plansza, komenda_do):
+    def sprawdz_legalnosc_ruchu(self,plansza: Plansza, komenda_do):
         x1,y1 = komenda_do
         x2,y2 = self.polozenie
-        if x1.equals(x2):
-            bool_1 = plansza[komenda_do]*plansza[self.polozenie]<=0  #czy figury sa przyciwnych kolorow
+        if x1 == x2:
+            bool_1 = plansza.plansza[x1,y1]*plansza.plansza[x2,y2]<=0  #czy figury sa przyciwnych kolorow
             bool_2  = np.all(plansza[x1, min(y1,y2)+1:max(y1,y2)] == 0)
             return np.logical_and(bool_1,bool_2)
-        elif y1.equals(y2):
+        elif y1 == y2:
             
-            bool_1 = plansza[komenda_do]*plansza[self.polozenie]<0  #czy figury sa przyciwnych kolorow
+            bool_1 = plansza.plansza[x1,y1]*plansza.plansza[x2,y2]<=0  #czy figury sa przyciwnych kolorow
             bool_2  = np.all(plansza[min(x1,x2)+1:max(x1,x2), y1] == 0)
             return np.logical_and(bool_1,bool_2)
         else:
