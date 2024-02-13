@@ -12,28 +12,27 @@ def play():
         print("Ruch koloru " + "białego" if plansza.tura.value > 0 else "czarnego")
         print(plansza.plansza)
 
-        print("Wpisz koordynaty figury")
-        wybor_figury = input()
-        wybor_figury = np.array([int(i) for i in wybor_figury.split(" ")])
-        
-        print("Wpisz koordynaty nowego położenia figury")
-        ruch = input()
-        ruch = np.array([int(i) for i in ruch.split(" ")])
+        flag = False
 
-        figura = Figura()
-
-        for fig in plansza.lista_figur:
+        while(not flag):
+            print("Wpisz koordynaty figury")
+            wybor_figury = input()
+            wybor_figury = np.array([int(i) for i in wybor_figury.split(" ")])
             
-            if all(fig.polozenie == wybor_figury):
-                figura = fig
-                break
+            print("Wpisz koordynaty nowego położenia figury")
+            ruch = input()
+            ruch = np.array([int(i) for i in ruch.split(" ")])
 
-        b = figura.wykonaj_ruch(plansza, ruch)
+            figura = Figura()
 
-        while(not b):
-            b = figura.wykonaj_ruch(plansza, ruch)
+            for fig in plansza.lista_figur:
+                
+                if all(fig.polozenie == wybor_figury):
+                    figura = fig
+                    break
+
+            flag = figura.wykonaj_ruch(plansza, ruch)
 
         plansza.zmien_ture()
 
-    
 play()

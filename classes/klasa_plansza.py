@@ -74,10 +74,11 @@ class Figura:
         self.captured = False
 
     def wykonaj_ruch(self, plansza : Plansza, loc_end) -> bool:
-        
-        if self.sprawdz_legalnosc_ruchu(plansza, loc_end) and plansza.tura.value*plansza.plansza[self.polozenie[0], self.polozenie[1]] > 0:
 
-            x, y = loc_end
+        x, y = loc_end
+        
+        if self.sprawdz_legalnosc_ruchu(plansza, loc_end) and plansza.tura.value*plansza.plansza[self.polozenie[0], self.polozenie[1]] > 0 and plansza.plansza[x, y]*plansza.tura.value <= 0:
+
             plansza.plansza[self.polozenie[0], self.polozenie[1]] = 0
             plansza.plansza[x, y] = self.wartosc
             self.polozenie = (x, y)
@@ -186,44 +187,67 @@ class Goniec(Figura):
         x1,y1 = self.polozenie
         x2,y2 = komenda_do
 
-        if (abs(x2-x1) == 1 and abs(y2-y1) == 2):
-            return True
-        elif (abs(x2-x1) == 2 and abs(y2-y1) == 1):
-            return True
+        
+
+        if (abs(x2-x1) == abs(y2-y1)): #sprawdzenie poprawności końca
+            
+            
+            tiles_to_check = [(x, y) for x, y in zip(range(x1, x2, 1 if x2>x1 else -1), range(y1, y2, 1 if y2>y1 else -1))]
+            
+            tiles_to_check.pop(0)
+            values_to_check = [plansza.plansza[x, y] for x, y in tiles_to_check]
+
+            if not any(values_to_check):  #i czy jest puste między pozycjami
+                return True
+            else:
+                return False
         else:
             return False
         
 
 class Krolowa(Figura):
-    def __init__(self, polozenie, kolor):
-        self.wartosc = 1
-        self.kolor = Kolor.BIALY
+    def __init__(self, polozenie, kolor: Kolor):
+        self.wartosc = 9*kolor.value
+        self.kolor = kolor
         self.zakres_ruchu = 1
         self.polozenie = np.array(polozenie)
         self.captured = False
 
-    def wykonaj_ruch(komenda):
-        pass
-    def set_polozenie(self,x,y):
-        self.polozenie[0] = x
-        self.polozenie[1] = y
+    def wykonaj_ruch(self, plansza: Plansza, loc_end):
+        return super().wykonaj_ruch(plansza, loc_end)
 
-    def sprawdz_mozliwosc_ruchu(plansza):
-        pass
+    def sprawdz_legalnosc_ruchu(self,plansza: Plansza, komenda_do):
+
+        fig1 = Wieza(polozenie=self.polozenie, kolor = self.kolor)
+        fig2 = Goniec(polozenie=self.polozenie, kolor = self.kolor)
+        
+        b1 = fig1.sprawdz_legalnosc_ruchu(plansza, komenda_do)
+        b2 = fig2.sprawdz_legalnosc_ruchu(plansza, komenda_do)
+
+        return b1 or b2
+
+
 
 class Krol(Figura):
-    def __init__(self, polozenie, kolor):
-        self.wartosc = 1
-        self.kolor = Kolor.BIALY
+    def __init__(self, polozenie, kolor: Kolor):
+        self.wartosc = 4*kolor.value
+        self.kolor = kolor
         self.zakres_ruchu = 1
         self.polozenie = np.array(polozenie)
         self.captured = False
 
-    def wykonaj_ruch(komenda):
-        pass
-    def set_polozenie(self,x,y):
-        self.polozenie[0] = x
-        self.polozenie[1] = y
+    def wykonaj_ruch(self, plansza: Plansza, loc_end):
+        return super().wykonaj_ruch(plansza, loc_end)
 
-    def sprawdz_mozliwosc_ruchu(plansza):
-        pass
+    def sprawdz_legalnosc_ruchu(self,plansza: Plansza, komenda_do):
+
+        x1,y1 = self.polozenie
+        x2,y2 = komenda_do
+
+        diff1 = abs(x2-x1)
+        diff2 = abs(y2-y1)
+
+        if (diff1 <= 1 or diff2 <= 1) and (diff1 != 0 or diff2 != 0):
+            return True
+        else:
+            return False
