@@ -20,10 +20,12 @@ class Plansza:
         self.tura = Kolor.BIALY
         self.moves_count = 1
         self.lista_figur = None
+        self.white_won = False
+        self.black_won = False
 
     def stworz_plansze(self):
 
-        self.plansza[7] = np.array([5,2,3,8,4,3,2,5])
+        self.plansza[7] = np.array([5,2,3,9,4,3,2,5])
         self.plansza[0] = -self.plansza[7]
         self.plansza[6] = np.ones(8)
         self.plansza[1] = -self.plansza[6]
@@ -60,6 +62,21 @@ class Plansza:
 
         self.lista_figur = lista_figur
     
+    def sprawdz_czy_koniec(self) -> bool:
+        
+        for fig in self.lista_figur:  #potencjalnie self.lista_figur[-1] i self.lista_figur[-2]
+            if type(fig) == Krol:
+                if fig.captured == True and fig.kolor.value == -1:
+
+                    self.white_won = True
+                    return True
+                
+                elif fig.captured == True and fig.kolor.value == 1:
+
+                    self.black_won = True
+                    return True
+                
+        return False
 
 class Kolor(Enum):
     BIALY = 1
@@ -82,6 +99,10 @@ class Figura:
             plansza.plansza[self.polozenie[0], self.polozenie[1]] = 0
             plansza.plansza[x, y] = self.wartosc
             self.polozenie = (x, y)
+
+            if type(self) == Pion:
+                self.first_move = False
+
             return True
 
         else: 
@@ -90,6 +111,20 @@ class Figura:
     
     def sprawdz_legalnosc_ruchu(self, plansza: Plansza, loc_end) -> bool:
         pass
+
+    def wszystkie_legalne_ruchy(self, plansza: Plansza) -> list:
+        
+        lista = []
+
+        for x in range(8):
+            for y in range(8):
+
+                loc_end = np.array([x, y])
+
+                if self.sprawdz_legalnosc_ruchu(plansza, loc_end) and plansza.tura.value*plansza.plansza[self.polozenie[0], self.polozenie[1]] > 0 and plansza.plansza[x, y]*plansza.tura.value <= 0:
+                    lista.append((x, y))
+        return lista
+
 
 class Pion(Figura):
     def __init__(self, polozenie, kolor: Kolor):
@@ -101,7 +136,7 @@ class Pion(Figura):
         self.first_move = True
     
     def wykonaj_ruch(self, plansza: Plansza, loc_end):
-        self.first_move = False
+        
         return super().wykonaj_ruch(plansza, loc_end)
     
     def sprawdz_legalnosc_ruchu(self, plansza : Plansza, loc_end) -> bool:
@@ -113,12 +148,14 @@ class Pion(Figura):
 
         if (y == y1 and x - self.kolor.value == x1) and (plansza.plansza[x1, y1] == 0):
             return True
-        elif ((y == y1 and x - 2*self.kolor.value == x1 and self.first_move==0) and (plansza.plansza[x1, y1] + plansza.plansza[x - self.kolor.value , y] == 0)):
+        elif ((y == y1 and x - 2*self.kolor.value == x1 and self.first_move) and (plansza.plansza[x1, y1] + plansza.plansza[x - self.kolor.value , y] == 0)):
             return True
         elif ((y+1 == y1 or y-1 ==y1) and x - self.kolor.value == x1) and plansza.plansza[x1, y1] * self.kolor.value < 0:
             return True
         else:
             return False
+    
+    
         
 class Wieza(Figura):
     def __init__(self, polozenie, kolor: Kolor):
@@ -187,14 +224,12 @@ class Goniec(Figura):
         x1,y1 = self.polozenie
         x2,y2 = komenda_do
 
-        
-
         if (abs(x2-x1) == abs(y2-y1)): #sprawdzenie poprawności końca
-            
             
             tiles_to_check = [(x, y) for x, y in zip(range(x1, x2, 1 if x2>x1 else -1), range(y1, y2, 1 if y2>y1 else -1))]
             
-            tiles_to_check.pop(0)
+            if len(tiles_to_check) > 0: 
+                tiles_to_check.pop(0)
             values_to_check = [plansza.plansza[x, y] for x, y in tiles_to_check]
 
             if not any(values_to_check):  #i czy jest puste między pozycjami
@@ -247,7 +282,7 @@ class Krol(Figura):
         diff1 = abs(x2-x1)
         diff2 = abs(y2-y1)
 
-        if (diff1 <= 1 or diff2 <= 1) and (diff1 != 0 or diff2 != 0):
+        if (diff1 <= 1 and diff2 <= 1) and (diff1 != 0 or diff2 != 0):
             return True
         else:
             return False
